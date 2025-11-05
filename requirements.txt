@@ -2,6 +2,18 @@
 numpy>=1.21.0
 scipy>=1.7.0
 matplotlib>=3.4.0
+pandas>=1.3.0
+
+# Market Data
+yfinance>=0.2.0
+
+# Web Dashboard
+streamlit>=1.20.0
+plotly>=5.10.0
+
+# Machine Learning (optional)
+scikit-learn>=1.0.0
+arch>=5.3.0  # For GARCH models
 
 # Testing
 pytest>=7.0.0
@@ -11,3 +23,14 @@ pytest-cov>=3.0.0
 black>=22.0.0
 flake8>=4.0.0
 mypy>=0.950
+
+# Optional ML dependencies (uncomment if needed)
+# tensorflow>=2.10.0  # For LSTM models
+# keras>=2.10.0
+# torch>=1.12.0  # PyTorch alternative
+
+# Data visualization (additional)
+seaborn>=0.11.0
+
+# Performance
+numba>=0.55.0  # JIT compilation for performance

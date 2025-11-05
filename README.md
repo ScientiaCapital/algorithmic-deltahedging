@@ -1,24 +1,90 @@
 # Algorithmic Delta Hedging
 
-A comprehensive Python library for pricing, analyzing, and implementing delta hedging strategies for European options using the Black-Scholes model.
+A production-ready Python library for options pricing, delta hedging strategies, portfolio management, and quantitative finance research.
 
-## Features
+## Features Overview
 
-### Current Implementation
-- **European Call & Put Options**: Complete Black-Scholes pricing implementation
-- **Option Greeks**: Delta calculations with real-time tracking
-- **Visualization**: Live animated plots showing option price, delta, and underlying asset movements
-- **Geometric Brownian Motion**: Proper GBM simulation for asset price movements
-- **Type Safety**: Full type hints and comprehensive docstrings
-- **Input Validation**: Robust error handling for all parameters
+### Options Pricing Models
 
-### In Development
-- Additional Greeks (Gamma, Vega, Theta, Rho)
-- Delta hedging strategy implementation
-- Portfolio management system
-- Transaction cost modeling
-- Backtesting framework
-- Real market data integration
+#### European Options
+- Black-Scholes pricing with all Greeks (Delta, Gamma, Vega, Theta, Rho)
+- Real-time visualization capabilities
+- Dividend-adjusted models (continuous and discrete)
+
+#### American Options
+- Binomial tree pricing method
+- Early exercise optimization
+- Complete Greeks calculation
+- Comparison with European pricing
+
+#### Exotic Options
+- **Asian Options**: Average price/strike options with Monte Carlo pricing
+- **Barrier Options**: Knock-in/knock-out options
+- **Lookback Options**: Min/max price dependent payoffs
+- **Digital Options**: Binary payoff options
+
+### Implied Volatility
+- **Multiple Methods**: Newton-Raphson, Bisection, Brent's method
+- **Volatility Surface**: Full IV surface calculation across strikes and maturities
+- **Volatility Smile**: Extract and analyze market-implied volatility patterns
+
+### Options Strategies
+- **Spreads**: Bull/Bear Call/Put spreads
+- **Straddles & Strangles**: Long/Short positions
+- **Iron Condors**: Multi-leg range-bound strategies
+- **Butterflies**: Symmetric volatility plays
+- **Covered Calls & Protective Puts**
+- **Custom Strategy Builder**: Create any multi-leg strategy
+
+### Delta Hedging & Portfolio Management
+- **Delta-Neutral Hedging**: Automatic rebalancing based on thresholds
+- **Transaction Costs**: Commission and slippage modeling
+- **Portfolio Tracking**: Multi-asset position management
+- **P&L Attribution**: Real-time profit/loss tracking
+- **Greeks Aggregation**: Portfolio-level Greeks calculation
+
+### Risk Management
+- **Value at Risk (VaR)**: Historical, Parametric, and Monte Carlo methods
+- **Conditional VaR (CVaR)**: Expected shortfall calculations
+- **Maximum Drawdown**: Peak-to-trough analysis
+- **Sharpe & Sortino Ratios**: Risk-adjusted performance metrics
+- **Stress Testing**: Scenario-based risk analysis
+- **Beta Calculation**: Systematic risk measurement
+
+### Market Data Integration
+- **Real-Time Data**: yfinance integration for stocks and options
+- **Historical Data**: OHLCV data with configurable intervals
+- **Options Chains**: Live options market data
+- **Dividend Information**: Automatic dividend yield extraction
+- **Data Caching**: Efficient API call management
+
+### Backtesting Framework
+- **Strategy Testing**: Backtest any options strategy on historical data
+- **Performance Metrics**: Comprehensive performance analysis
+- **Equity Curves**: Visual representation of strategy performance
+- **Commission Modeling**: Realistic transaction costs
+- **Customizable**: Easy to implement custom strategies
+
+### Machine Learning
+- **GARCH Models**: Volatility clustering and forecasting
+- **LSTM Networks**: Deep learning for volatility prediction
+- **Random Forest**: Ensemble methods for vol forecasting
+- **Ensemble Models**: Combine multiple forecasters
+
+### Web Dashboard
+- **Interactive UI**: Streamlit-based web interface
+- **Options Pricing Calculator**: Real-time pricing with parameter controls
+- **Greeks Visualization**: Interactive Greeks sensitivity analysis
+- **Strategy Builder**: Visual strategy construction
+- **Portfolio Manager**: Live portfolio tracking
+- **Risk Analytics**: Real-time risk metrics dashboard
+- **Market Data Viewer**: Live market data integration
+
+### Performance Optimization
+- **Parallel Computing**: Multi-threaded Monte Carlo simulations
+- **Vectorization**: NumPy-optimized calculations
+- **Efficient Algorithms**: Optimized numerical methods
+- **Benchmarking Tools**: Performance comparison utilities
 
 ## Installation
 
@@ -28,202 +94,72 @@ A comprehensive Python library for pricing, analyzing, and implementing delta he
 
 ### Setup
 
-1. Clone the repository:
 ```bash
+# Clone the repository
 git clone https://github.com/ScientiaCapital/Algorithmic_Delta_Hedging.git
 cd Algorithmic_Delta_Hedging
-```
 
-2. Install dependencies:
-```bash
+# Install dependencies
 pip install -r requirements.txt
 ```
 
-## Usage
+## Quick Start
 
-### Basic Example
+### Basic Options Pricing
 
 ```python
 import datetime
 from datetime import timedelta
 from options.euro_option_analysis import EuropeanCall, EuropeanPut
 
-# Calculate expiration date (30 days from today)
+# Create an option
 expiration = datetime.date.today() + timedelta(days=30)
-
-# Create a European call option
-call_option = EuropeanCall(
-    asset_price=100.0,      # Current stock price
-    strike_price=105.0,     # Strike price
-    volatility=0.3,         # 30% annual volatility
-    expiration_date=expiration,
-    risk_free_rate=0.05,    # 5% risk-free rate
-    drift=0.1               # 10% expected return
-)
-
-# Access option properties
-print(f"Option Price: ${call_option.price:.2f}")
-print(f"Delta: {call_option.delta:.4f}")
-print(f"Exercise Probability: {call_option.exercise_prob():.2%}")
-```
-
-### Put Options
-
-```python
-# Create a European put option
-put_option = EuropeanPut(
+call = EuropeanCall(
     asset_price=100.0,
-    strike_price=95.0,
-    volatility=0.3,
+    strike_price=105.0,
+    volatility=0.30,
     expiration_date=expiration,
     risk_free_rate=0.05,
-    drift=0.1
+    drift=0.10
 )
 
-print(f"Put Price: ${put_option.price:.2f}")
-print(f"Put Delta: {put_option.delta:.4f}")
+print(f"Price: ${call.price:.2f}")
+print(f"Delta: {call.delta:.4f}")
+print(f"Gamma: {call.gamma:.4f}")
+print(f"Vega: {call.vega:.4f}")
+print(f"Theta: {call.theta:.4f}")
+print(f"Rho: {call.rho:.4f}")
 ```
 
-### Live Visualization
+### Web Dashboard
 
-```python
-from options.euro_option_analysis import LiveOptionsGraph
-
-# Create option
-call_option = EuropeanCall(100, 105, 0.3, expiration, 0.05, 0.1)
-
-# Launch live visualization (displays animated plots)
-graph = LiveOptionsGraph(call_option, 'call')
+```bash
+# Launch the Streamlit dashboard
+streamlit run streamlit_app/dashboard.py
 ```
 
-The visualization shows three real-time plots:
-1. **Option Price**: Black-Scholes theoretical price over time
-2. **Delta**: Sensitivity to underlying price changes
-3. **Asset Price**: Underlying asset price vs strike price (color-coded for ITM/OTM)
+Then open your browser to `http://localhost:8501`
 
-## Project Structure
-
-```
-Algorithmic_Delta_Hedging/
-├── options/
-│   └── euro_option_analysis.py   # European options implementation
-├── tests/                         # Unit tests (coming soon)
-├── examples/                      # Example scripts (coming soon)
-├── requirements.txt               # Python dependencies
-├── README.md                      # This file
-└── LICENSE                        # MIT License
-```
-
-## Mathematical Background
-
-This library implements the Black-Scholes formula for European options:
-
-**Call Option Price:**
-```
-C = S₀N(d₁) - Ke^(-rT)N(d₂)
-```
-
-**Put Option Price:**
-```
-P = Ke^(-rT)N(-d₂) - S₀N(-d₁)
-```
-
-Where:
-- `d₁ = [ln(S₀/K) + (r + σ²/2)T] / (σ√T)`
-- `d₂ = d₁ - σ√T`
-- `S₀` = Current asset price
-- `K` = Strike price
-- `r` = Risk-free rate
-- `σ` = Volatility
-- `T` = Time to expiration
-- `N(·)` = Cumulative standard normal distribution
-
-**Delta (Call):** `Δ = N(d₁)`
-**Delta (Put):** `Δ = N(d₁) - 1`
-
-Asset prices are simulated using Geometric Brownian Motion:
-```
-S(t+dt) = S(t) × exp[(μ - σ²/2)dt + σ√dt·Z]
-```
+For complete documentation and advanced examples, see the full README and examples directory.
 
 ## Testing
 
-Run the test suite:
 ```bash
+# Run all tests
 pytest tests/ -v
-```
 
-Run with coverage:
-```bash
+# Run with coverage
 pytest tests/ --cov=options --cov-report=html
 ```
 
-## Development
-
-### Code Quality
-
-Format code with Black:
-```bash
-black options/
-```
-
-Check types with mypy:
-```bash
-mypy options/
-```
-
-Lint with flake8:
-```bash
-flake8 options/
-```
-
-## Roadmap
-
-### Phase 1: Foundation (Completed)
-- [x] European call/put pricing
-- [x] Delta calculation
-- [x] Real-time visualization
-- [x] Type hints and documentation
-- [x] Input validation
-
-### Phase 2: Core Hedging (In Progress)
-- [ ] Gamma, Vega, Theta, Rho calculations
-- [ ] Delta hedging strategy class
-- [ ] Portfolio management system
-- [ ] Transaction cost modeling
-- [ ] P&L tracking
-
-### Phase 3: Testing & Infrastructure
-- [ ] Comprehensive unit tests
-- [ ] Integration tests
-- [ ] CI/CD pipeline
-- [ ] Performance benchmarks
-
-### Phase 4: Advanced Features
-- [ ] American options
-- [ ] Implied volatility calculation
-- [ ] Options strategies (spreads, straddles, etc.)
-- [ ] Real market data integration
-- [ ] Backtesting framework
-
-## Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+MIT License - see [LICENSE](LICENSE) file for details.
 
 ## Disclaimer
 
-This software is for educational and research purposes only. It should not be used for actual trading without thorough testing and validation. The authors are not responsible for any financial losses incurred through the use of this software.
+This software is for educational and research purposes only. Not for actual trading without proper validation and risk management.
 
-## References
+---
 
-- Black, F., & Scholes, M. (1973). "The Pricing of Options and Corporate Liabilities"
-- Hull, J. C. (2018). "Options, Futures, and Other Derivatives"
-- Wilmott, P. (2006). "Paul Wilmott on Quantitative Finance"
-
-## Contact
-
-For questions or feedback, please open an issue on GitHub.
+**For complete documentation, examples, and API reference, see the docs directory and examples folder.**
