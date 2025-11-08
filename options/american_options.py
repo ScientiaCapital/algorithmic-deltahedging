@@ -29,7 +29,8 @@ class AmericanOption:
         expiration_date: datetime.date,
         risk_free_rate: float,
         dividend_yield: float = 0.0,
-        num_steps: int = 100
+        num_steps: int = 100,
+        calculate_greeks: bool = True
     ):
         """
         Initialize an American option.
@@ -42,6 +43,7 @@ class AmericanOption:
             risk_free_rate: Annual risk-free interest rate
             dividend_yield: Annual dividend yield
             num_steps: Number of time steps in binomial tree
+            calculate_greeks: Whether to calculate Greeks (set False for performance)
 
         Raises:
             ValueError: If any parameters are invalid
@@ -62,6 +64,7 @@ class AmericanOption:
         self.risk_free_rate = risk_free_rate
         self.dividend_yield = dividend_yield
         self.num_steps = num_steps
+        self.calculate_greeks = calculate_greeks
 
         # Calculate time to expiration in years
         dt = np.busday_count(datetime.date.today(), expiration_date) / 252
@@ -151,58 +154,58 @@ class AmericanOption:
         # Delta: (V(S+dS) - V(S-dS)) / (2*dS)
         dS = self.asset_price * 0.01
 
-        # Price with S + dS
+        # Price with S + dS (skip Greeks calculation to avoid infinite recursion)
         option_up = AmericanCall(self.asset_price + dS, self.strike_price, self.volatility,
                                  self.expiration_date, self.risk_free_rate, self.dividend_yield,
-                                 self.num_steps) if option_type == 'call' else \
+                                 self.num_steps, calculate_greeks=False) if option_type == 'call' else \
                     AmericanPut(self.asset_price + dS, self.strike_price, self.volatility,
                                self.expiration_date, self.risk_free_rate, self.dividend_yield,
-                               self.num_steps)
+                               self.num_steps, calculate_greeks=False)
 
-        # Price with S - dS
+        # Price with S - dS (skip Greeks calculation to avoid infinite recursion)
         option_down = AmericanCall(self.asset_price - dS, self.strike_price, self.volatility,
                                    self.expiration_date, self.risk_free_rate, self.dividend_yield,
-                                   self.num_steps) if option_type == 'call' else \
+                                   self.num_steps, calculate_greeks=False) if option_type == 'call' else \
                       AmericanPut(self.asset_price - dS, self.strike_price, self.volatility,
                                  self.expiration_date, self.risk_free_rate, self.dividend_yield,
-                                 self.num_steps)
+                                 self.num_steps, calculate_greeks=False)
 
         delta = (option_up.price - option_down.price) / (2 * dS)
 
         # Gamma: (V(S+dS) - 2V(S) + V(S-dS)) / (dS^2)
         gamma = (option_up.price - 2 * self.price + option_down.price) / (dS ** 2)
 
-        # Vega: dV/d(sigma)
+        # Vega: dV/d(sigma) (skip Greeks calculation to avoid infinite recursion)
         dvol = self.volatility * 0.01
         option_vega = AmericanCall(self.asset_price, self.strike_price, self.volatility + dvol,
                                    self.expiration_date, self.risk_free_rate, self.dividend_yield,
-                                   self.num_steps) if option_type == 'call' else \
+                                   self.num_steps, calculate_greeks=False) if option_type == 'call' else \
                       AmericanPut(self.asset_price, self.strike_price, self.volatility + dvol,
                                  self.expiration_date, self.risk_free_rate, self.dividend_yield,
-                                 self.num_steps)
+                                 self.num_steps, calculate_greeks=False)
         vega = (option_vega.price - self.price) / dvol / 100  # Per 1% change
 
-        # Theta: approximate using time step
+        # Theta: approximate using time step (skip Greeks calculation to avoid infinite recursion)
         if self.dt > 1/252:
             future_date = self.expiration_date - datetime.timedelta(days=1)
             option_theta = AmericanCall(self.asset_price, self.strike_price, self.volatility,
                                        future_date, self.risk_free_rate, self.dividend_yield,
-                                       self.num_steps) if option_type == 'call' else \
+                                       self.num_steps, calculate_greeks=False) if option_type == 'call' else \
                           AmericanPut(self.asset_price, self.strike_price, self.volatility,
                                      future_date, self.risk_free_rate, self.dividend_yield,
-                                     self.num_steps)
+                                     self.num_steps, calculate_greeks=False)
             theta = -(option_theta.price - self.price)  # Per day
         else:
             theta = 0.0
 
-        # Rho: dV/dr
+        # Rho: dV/dr (skip Greeks calculation to avoid infinite recursion)
         dr = 0.01
         option_rho = AmericanCall(self.asset_price, self.strike_price, self.volatility,
                                  self.expiration_date, self.risk_free_rate + dr, self.dividend_yield,
-                                 self.num_steps) if option_type == 'call' else \
+                                 self.num_steps, calculate_greeks=False) if option_type == 'call' else \
                      AmericanPut(self.asset_price, self.strike_price, self.volatility,
                                 self.expiration_date, self.risk_free_rate + dr, self.dividend_yield,
-                                self.num_steps)
+                                self.num_steps, calculate_greeks=False)
         rho = (option_rho.price - self.price) / dr / 100  # Per 1% change
 
         return {
@@ -225,23 +228,32 @@ class AmericanCall(AmericanOption):
         expiration_date: datetime.date,
         risk_free_rate: float,
         dividend_yield: float = 0.0,
-        num_steps: int = 100
+        num_steps: int = 100,
+        calculate_greeks: bool = True
     ):
         """Initialize American Call option."""
         super().__init__(asset_price, strike_price, volatility, expiration_date,
-                        risk_free_rate, dividend_yield, num_steps)
+                        risk_free_rate, dividend_yield, num_steps, calculate_greeks)
 
         # Calculate price using binomial tree
         _, option_tree = self._build_binomial_tree('call')
         self.price = option_tree[0, 0]
 
-        # Calculate Greeks
-        greeks = self._calculate_greeks('call')
-        self.delta = greeks['delta']
-        self.gamma = greeks['gamma']
-        self.vega = greeks['vega']
-        self.theta = greeks['theta']
-        self.rho = greeks['rho']
+        # Calculate Greeks only if requested
+        if calculate_greeks:
+            greeks = self._calculate_greeks('call')
+            self.delta = greeks['delta']
+            self.gamma = greeks['gamma']
+            self.vega = greeks['vega']
+            self.theta = greeks['theta']
+            self.rho = greeks['rho']
+        else:
+            # Set Greeks to None when not calculated
+            self.delta = None
+            self.gamma = None
+            self.vega = None
+            self.theta = None
+            self.rho = None
 
 
 class AmericanPut(AmericanOption):
@@ -255,23 +267,32 @@ class AmericanPut(AmericanOption):
         expiration_date: datetime.date,
         risk_free_rate: float,
         dividend_yield: float = 0.0,
-        num_steps: int = 100
+        num_steps: int = 100,
+        calculate_greeks: bool = True
     ):
         """Initialize American Put option."""
         super().__init__(asset_price, strike_price, volatility, expiration_date,
-                        risk_free_rate, dividend_yield, num_steps)
+                        risk_free_rate, dividend_yield, num_steps, calculate_greeks)
 
         # Calculate price using binomial tree
         _, option_tree = self._build_binomial_tree('put')
         self.price = option_tree[0, 0]
 
-        # Calculate Greeks
-        greeks = self._calculate_greeks('put')
-        self.delta = greeks['delta']
-        self.gamma = greeks['gamma']
-        self.vega = greeks['vega']
-        self.theta = greeks['theta']
-        self.rho = greeks['rho']
+        # Calculate Greeks only if requested
+        if calculate_greeks:
+            greeks = self._calculate_greeks('put')
+            self.delta = greeks['delta']
+            self.gamma = greeks['gamma']
+            self.vega = greeks['vega']
+            self.theta = greeks['theta']
+            self.rho = greeks['rho']
+        else:
+            # Set Greeks to None when not calculated
+            self.delta = None
+            self.gamma = None
+            self.vega = None
+            self.theta = None
+            self.rho = None
 
 
 def compare_american_european(

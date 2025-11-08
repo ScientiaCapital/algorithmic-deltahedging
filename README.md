@@ -96,11 +96,19 @@ A production-ready Python library for options pricing, delta hedging strategies,
 
 ```bash
 # Clone the repository
-git clone https://github.com/ScientiaCapital/Algorithmic_Delta_Hedging.git
-cd Algorithmic_Delta_Hedging
+git clone https://github.com/YOUR_USERNAME/algorithmic-delta-hedging.git
+cd algorithmic-delta-hedging
+
+# Create virtual environment (recommended)
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
 
 # Install dependencies
 pip install -r requirements.txt
+
+# Copy environment variables template
+cp .env.example .env
+# Edit .env with your API keys (if needed)
 ```
 
 ## Quick Start

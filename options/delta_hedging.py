@@ -196,7 +196,7 @@ class DeltaHedgingStrategy:
             True if rebalancing is needed
         """
         delta_imbalance = abs(position.delta_imbalance)
-        return delta_imbalance >= self.rebalance_threshold
+        return bool(delta_imbalance >= self.rebalance_threshold)
 
     def rebalance_position(
         self,
