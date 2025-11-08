@@ -302,7 +302,8 @@ def compare_american_european(
     expiration_date: datetime.date,
     risk_free_rate: float,
     dividend_yield: float = 0.0,
-    option_type: str = 'call'
+    option_type: str = 'call',
+    num_steps: int = 500
 ) -> dict:
     """
     Compare American and European option prices.
@@ -315,22 +316,23 @@ def compare_american_european(
         risk_free_rate: Risk-free rate
         dividend_yield: Dividend yield
         option_type: 'call' or 'put'
+        num_steps: Number of steps for binomial tree (default 500 for better convergence)
 
     Returns:
         Dictionary with comparison metrics
     """
-    from options.euro_option_analysis import EuropeanCall, EuropeanPut
+    from options.dividend_models import DividendAdjustedCall, DividendAdjustedPut
 
     if option_type == 'call':
         american = AmericanCall(asset_price, strike_price, volatility, expiration_date,
-                               risk_free_rate, dividend_yield)
-        european = EuropeanCall(asset_price, strike_price, volatility, expiration_date,
-                               risk_free_rate, 0.0)  # European uses drift, not dividend
+                               risk_free_rate, dividend_yield, num_steps=num_steps, calculate_greeks=False)
+        european = DividendAdjustedCall(asset_price, strike_price, volatility, expiration_date,
+                                       risk_free_rate, dividend_yield)
     else:
         american = AmericanPut(asset_price, strike_price, volatility, expiration_date,
-                              risk_free_rate, dividend_yield)
-        european = EuropeanPut(asset_price, strike_price, volatility, expiration_date,
-                              risk_free_rate, 0.0)
+                              risk_free_rate, dividend_yield, num_steps=num_steps, calculate_greeks=False)
+        european = DividendAdjustedPut(asset_price, strike_price, volatility, expiration_date,
+                                      risk_free_rate, dividend_yield)
 
     early_exercise_premium = american.price - european.price
 

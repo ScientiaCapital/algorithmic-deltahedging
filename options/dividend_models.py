@@ -94,13 +94,11 @@ class DividendAdjustedCall:
 
     def _calculate_price(self, d1: float, d2: float) -> float:
         """Calculate call option price with dividend adjustment."""
-        # Adjust asset price for dividends
-        adjusted_asset_price = self.asset_price * math.exp(-self.dividend_yield * self.dt)
-
         n1 = stats.norm.cdf(d1)
         n2 = stats.norm.cdf(d2)
 
-        price = (adjusted_asset_price * math.exp(self.dividend_yield * self.dt) * n1 -
+        # Black-Scholes-Merton formula: C = S*e^(-q*T)*N(d1) - K*e^(-r*T)*N(d2)
+        price = (self.asset_price * math.exp(-self.dividend_yield * self.dt) * n1 -
                 self.strike_price * math.exp(-self.risk_free_rate * self.dt) * n2)
         return price
 
