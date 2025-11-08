@@ -14,7 +14,10 @@ import pandas as pd
 from typing import Tuple, Optional, List
 from datetime import datetime, timedelta
 import warnings
+import logging
+
 warnings.filterwarnings('ignore')
+logger = logging.getLogger(__name__)
 
 
 class VolatilityForecaster:
@@ -86,7 +89,7 @@ class GARCHForecaster(VolatilityForecaster):
 
         except ImportError:
             # Fallback to simple estimation if arch package not available
-            print("Warning: arch package not available, using simple GARCH estimation")
+            logger.warning("arch package not available, using simple GARCH estimation")
             self._simple_garch_fit(returns)
 
     def _simple_garch_fit(self, returns: np.ndarray) -> None:
@@ -214,7 +217,7 @@ class LSTMVolatilityForecaster(VolatilityForecaster):
             self.model = np.mean(y)
 
         except ImportError:
-            print("Warning: sklearn not available, using fallback method")
+            logger.warning("sklearn not available, using fallback method")
             self.model = np.std(returns) * np.sqrt(252)
 
     def predict(self, horizon: int = 1) -> float:
@@ -324,7 +327,7 @@ class RandomForestVolatilityForecaster(VolatilityForecaster):
             self.last_features = X[-1].reshape(1, -1)
 
         except ImportError:
-            print("Warning: sklearn not available, using fallback method")
+            logger.warning("sklearn not available, using fallback method")
             self.model = np.std(returns) * np.sqrt(252)
 
     def predict(self, horizon: int = 1) -> float:
@@ -392,7 +395,7 @@ class EnsembleVolatilityForecaster:
             try:
                 model.fit(returns)
             except Exception as e:
-                print(f"Warning: Failed to fit {model.__class__.__name__}: {str(e)}")
+                logger.warning(f"Failed to fit {model.__class__.__name__}: {str(e)}")
 
     def predict(self, horizon: int = 1) -> float:
         """
@@ -413,7 +416,7 @@ class EnsembleVolatilityForecaster:
                 predictions.append(pred)
                 valid_weights.append(weight)
             except Exception as e:
-                print(f"Warning: Prediction failed for {model.__class__.__name__}: {str(e)}")
+                logger.warning(f"Prediction failed for {model.__class__.__name__}: {str(e)}")
 
         if not predictions:
             raise ValueError("All models failed to predict")
@@ -485,6 +488,6 @@ def compare_forecasters(
             })
 
         except Exception as e:
-            print(f"Error with {name}: {str(e)}")
+            logger.error(f"Error with {name}: {str(e)}")
 
     return pd.DataFrame(results)

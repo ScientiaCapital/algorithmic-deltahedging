@@ -15,6 +15,10 @@ from dataclasses import dataclass
 import numpy as np
 import matplotlib.pyplot as plt
 
+# Import option classes for type checking
+from options.euro_option_analysis import EuropeanCall, EuropeanPut
+from options.american_options import AmericanCall, AmericanPut
+
 
 @dataclass
 class StrategyLeg:
@@ -113,12 +117,8 @@ class OptionsStrategy:
             quantity = leg.quantity
             multiplier = -1 if leg.action == 'sell' else 1
 
-            # Determine if call or put
-            if hasattr(option, '__class__'):
-                option_class_name = option.__class__.__name__
-                is_call = 'Call' in option_class_name
-            else:
-                is_call = True  # Default assumption
+            # Determine if call or put using proper type checking
+            is_call = isinstance(option, (EuropeanCall, AmericanCall))
 
             # Calculate intrinsic value at each stock price
             if is_call:

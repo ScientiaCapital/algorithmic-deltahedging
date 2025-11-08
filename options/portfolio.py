@@ -142,7 +142,26 @@ class Portfolio:
 
         Args:
             position: Position object to add
+
+        Raises:
+            ValueError: If position is None or if insufficient cash for long positions
         """
+        if position is None:
+            raise ValueError("Position cannot be None")
+
+        if position.cost_basis is None or position.cost_basis < 0:
+            raise ValueError("Position cost_basis must be non-negative")
+
+        # Check if enough cash for long positions
+        if position.position_type in [PositionType.LONG_CALL, PositionType.LONG_PUT,
+                                     PositionType.LONG_STOCK]:
+            required_cash = position.cost_basis
+            if self.cash_balance < required_cash:
+                raise ValueError(
+                    f"Insufficient cash: need ${required_cash:.2f}, "
+                    f"have ${self.cash_balance:.2f}"
+                )
+
         self.positions.append(position)
 
         # Update cash balance (decrease for long, increase for short)
@@ -162,9 +181,18 @@ class Portfolio:
 
         Returns:
             Realized P&L from closing the position
+
+        Raises:
+            ValueError: If position not found or closing_price is invalid
         """
+        if position is None:
+            raise ValueError("Position cannot be None")
+
         if position not in self.positions:
             raise ValueError("Position not found in portfolio")
+
+        if closing_price is None or closing_price < 0:
+            raise ValueError("Closing price must be non-negative")
 
         # Calculate realized P&L
         position.current_price = closing_price

@@ -8,6 +8,7 @@ and portfolio management.
 from .euro_option_analysis import EuropeanCall, EuropeanPut, LiveOptionsGraph
 from .delta_hedging import DeltaHedgingStrategy, HedgePosition, Transaction
 from .portfolio import Portfolio, Position, PositionType
+from . import constants
 
 __version__ = "0.1.0"
 __all__ = [
@@ -19,5 +20,6 @@ __all__ = [
     "Transaction",
     "Portfolio",
     "Position",
-    "PositionType"
+    "PositionType",
+    "constants"
 ]

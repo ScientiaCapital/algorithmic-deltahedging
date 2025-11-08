@@ -167,11 +167,13 @@ def implied_volatility_newton_raphson(
         if abs(price_diff) < tolerance:
             return volatility
 
-        # Avoid division by zero
-        if vega < 1e-10:
-            raise ImpliedVolatilityError("Vega too small, cannot converge")
+        # Avoid division by zero - check vega validity BEFORE using it
+        if vega is None or vega < 1e-10:
+            raise ImpliedVolatilityError(
+                f"Vega too small or invalid (vega={vega}), cannot converge"
+            )
 
-        # Newton-Raphson update
+        # Newton-Raphson update (safe now, vega validated above)
         volatility = volatility - price_diff / vega
 
         # Ensure volatility stays positive

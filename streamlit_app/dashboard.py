@@ -14,6 +14,7 @@ import pandas as pd
 import numpy as np
 import plotly.graph_objects as go
 import plotly.express as px
+import re
 
 # Import our options library
 import sys
@@ -376,9 +377,14 @@ elif page == "Risk Analytics":
 elif page == "Market Data":
     st.header("Real-Time Market Data")
 
-    symbol = st.text_input("Enter Stock Symbol", value="AAPL")
+    symbol = st.text_input("Enter Stock Symbol", value="AAPL").strip().upper()
 
     if st.button("Fetch Data"):
+        # Validate symbol format
+        if not re.match(r'^[A-Z]{1,5}$', symbol):
+            st.error("Invalid symbol format. Please enter 1-5 letters (e.g., AAPL, MSFT, GOOGL)")
+            st.stop()
+
         try:
             provider = YFinanceProvider()
 
